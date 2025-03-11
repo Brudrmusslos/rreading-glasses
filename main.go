@@ -56,13 +56,24 @@ type pgconfig struct {
 
 // dsn returns the database's DSN based on the provided flags.
 func (c *pgconfig) dsn() string {
-	return fmt.Sprintf("postgres://%s:%s@%s:%d/%s",
-		c.PostgresUser,
-		c.PostgresPassword,
-		c.PostgresHost,
-		c.PostgresPort,
-		c.PostgresDatabase,
-	)
+  // Use a Unix socket if PostgresHost is set to a directory path
+  if len(c.PostgresHost) > 0 && c.PostgresHost[0] == '/' {
+    return fmt.Sprintf("postgres://%s:%s@/%s?host=%s",
+      c.PostgresUser,
+      c.PostgresPassword,
+      c.PostgresDatabase,
+      c.PostgresHost,
+    )
+  }
+
+  // Otherwise, fall back to TCP connection
+  return fmt.Sprintf("postgres://%s:%s@%s:%d/%s",
+    c.PostgresUser,
+    c.PostgresPassword,
+    c.PostgresHost,
+    c.PostgresPort,
+    c.PostgresDatabase,
+  )
 }
 
 type logconfig struct {
